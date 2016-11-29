@@ -1,0 +1,6 @@
+
+# python compiled files
+*.pyc
+
+# temp files
+*~
