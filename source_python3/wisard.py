@@ -29,6 +29,18 @@ class WiSARD:
                 index += pow(2,i)
         return index
 
+    def _getRAM(self, ram, index):
+        if index not in ram['ram']:
+            return 0
+        else:
+            return ram['ram'][index]
+
+    def _acumRAM(self, ram, index):
+        if index not in ram['ram']:
+            ram['ram'][index] = 0
+        ram['ram'][index] += 1
+
+
 
     def _trainEntry(self, entry, aclass):
         discriminator = self.discriminators[aclass]
@@ -37,7 +49,7 @@ class WiSARD:
             for i in ram['address']:
                 code.append(entry[i])
             index = self._getRAMPosition(code)
-            ram['ram'][index] += 1
+            self._acumRAM(ram, index)
 
 
     def _setNumberOfRAMS(self, entrySize):
@@ -50,8 +62,7 @@ class WiSARD:
         rams = []
         for i in range(self.numberOfRAMS):
             address = np.random.randint(entrySize, size=self.addressSize)
-            positions = np.zeros(pow(2,self.addressSize), dtype=np.long)
-            ram = {'address': address, 'ram': positions}
+            ram = {'address': address, 'ram': {}}
             rams.append(ram)
         rams = np.array(rams)
         return rams
@@ -95,11 +106,11 @@ class WiSARD:
                 for i in ram['address']:
                     code.append(entry[i])
                 index = self._getRAMPosition(code)
-                ramsoutput.append(ram['ram'][index])
+                ramsoutput.append(self._getRAM(ram, index))
                 if fixed_bleaching is None:
-                    if ram['ram'][index] >= bleaching:
+                    if self._getRAM(ram, index) >= bleaching:
                         votes += 1
-                elif ram['ram'][index] >= fixed_bleaching:
+                elif self._getRAM(ram, index) >= fixed_bleaching:
                     votes += 1
             classes.append((keyClass, float(votes)/len(ramsoutput)))
             discriminatorsoutput[keyClass] = [ramsoutput, votes]
