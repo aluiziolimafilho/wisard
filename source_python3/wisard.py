@@ -14,7 +14,7 @@ class WiSARD:
         self.verbose = verbose
         np.random.seed(seed)
         self.rams = []
-        if addressSize < 2:
+        if addressSize < 3:
             self.addressSize = 3
         else:
             self.addressSize = addressSize
@@ -41,11 +41,8 @@ class WiSARD:
 
 
     def _setNumberOfRAMS(self, entrySize):
-        minimumOfRAMS = 4
-        if self.numberOfRAMS is None or self.numberOfRAMS < minimumOfRAMS:
+        if self.numberOfRAMS is None:
             self.numberOfRAMS = int(entrySize/self.addressSize)
-            if self.numberOfRAMS < minimumOfRAMS:
-                self.numberOfRAMS = minimumOfRAMS
 
 
     def _createDiscriminator(self, entrySize):
