@@ -1,5 +1,14 @@
 import random
-import numpy as np
+
+from discriminator import Discriminator
+
+class Addressing:
+    def __call__(self, binCode):
+        index = 0
+        for i,e in enumerate(binCode):
+            if e > 0:
+                index += pow(2,i)
+        return index
 
 class WiSARD:
 
@@ -8,12 +17,13 @@ class WiSARD:
             numberOfRAMS = None,
             bleachingActivated = True,
             seed = random.randint(0, 1000000),
-            verbose = True):
+            verbose = True,
+            addressing=Addressing()):
 
         self.seed = seed
         self.verbose = verbose
-        np.random.seed(seed)
-        self.rams = []
+        random.seed(seed)
+
         if addressSize < 3:
             self.addressSize = 3
         else:
@@ -21,123 +31,68 @@ class WiSARD:
         self.numberOfRAMS = numberOfRAMS
         self.discriminators = {}
         self.bleachingActivated = bleachingActivated
+        self.addressing = addressing
 
-    def _getRAMPosition(self, address):
-        index = 0
-        for i,e in enumerate(address):
-            if e > 0:
-                index += pow(2,i)
-        return index
+    def _makeBleaching(self, discriminatorsoutput):
+        bleaching = 0
+        ambiguity = True
+        biggestVote = 2
+        while ambiguity and biggestVote > 1:
+            bleaching += 1
+            biggestVote = None
+            ambiguity = False
+            for key in discriminatorsoutput:
+                discriminator = discriminatorsoutput[key]
+                limit = lambda x: 1 if x >= bleaching else 0
+                discriminator[1] = sum(map(limit, discriminator[0]))
+                if biggestVote is None or discriminator[1] > biggestVote:
+                    biggestVote = discriminator[1]
+                    ambiguity = False
+                elif discriminator[1] == biggestVote:
+                    ambiguity = True
+            if self.bleachingActivated:
+                break
 
-    def _getRAM(self, ram, index):
-        if index not in ram['ram']:
-            return 0
-        else:
-            return ram['ram'][index]
-
-    def _acumRAM(self, ram, index):
-        if index not in ram['ram']:
-            ram['ram'][index] = 0
-        ram['ram'][index] += 1
-
-
-
-    def _trainEntry(self, entry, aclass):
-        discriminator = self.discriminators[aclass]
-        for ram in discriminator:
-            code = []
-            for i in ram['address']:
-                code.append(entry[i])
-            index = self._getRAMPosition(code)
-            self._acumRAM(ram, index)
-
-
-    def _setNumberOfRAMS(self, entrySize):
-        if self.numberOfRAMS is None:
-            self.numberOfRAMS = int(entrySize/self.addressSize)
-
-
-    def _createDiscriminator(self, entrySize):
-        self._setNumberOfRAMS(entrySize)
-        rams = []
-        for i in range(self.numberOfRAMS):
-            address = np.random.randint(entrySize, size=self.addressSize)
-            ram = {'address': address, 'ram': {}}
-            rams.append(ram)
-        rams = np.array(rams)
-        return rams
+        return discriminatorsoutput
 
     def train(self, entries, classes):
         sizeOfEntry = len(entries[0])
         for i,entry in enumerate(entries):
+
             if self.verbose:
                 print("\rtraining "+str(i+1)+" of "+str(len(entries)), end='')
+
             aclass = str(classes[i])
             if aclass not in self.discriminators:
-                self.discriminators[aclass] = self._createDiscriminator(sizeOfEntry)
-            self._trainEntry(entry, aclass)
+                self.discriminators[aclass] = Discriminator(aclass, sizeOfEntry, self.addressSize, self.addressing, self.numberOfRAMS)
+
+            self.discriminators[aclass].train(entry)
         if self.verbose:
             print("\r")
 
-    def _getBiggestVote(self, discriminatorsoutput):
-        biggestVote = None
-        ambiguity = False
-        for key in discriminatorsoutput:
-            discriminatorvotes = discriminatorsoutput[key][1]
-            if biggestVote is None or discriminatorvotes > biggestVote:
-                biggestVote = discriminatorvotes
-                ambiguity = False
-            elif discriminatorvotes == biggestVote:
-                ambiguity = True
-
-        return (biggestVote,ambiguity)
-
-
-    def classifyEntry(self, entry, fixed_bleaching=None):
-        classes = []
+    def classifyEntry(self, entry):
         discriminatorsoutput = {}
-        bleaching = 1
         for keyClass in self.discriminators:
-            discriminator = self.discriminators[keyClass]
-            ramsoutput = []
-            votes = 0
-            for ram in discriminator:
-                code = []
-                for i in ram['address']:
-                    code.append(entry[i])
-                index = self._getRAMPosition(code)
-                ramsoutput.append(self._getRAM(ram, index))
-                if fixed_bleaching is None:
-                    if self._getRAM(ram, index) >= bleaching:
-                        votes += 1
-                elif self._getRAM(ram, index) >= fixed_bleaching:
-                    votes += 1
-            classes.append((keyClass, float(votes)/len(ramsoutput)))
-            discriminatorsoutput[keyClass] = [ramsoutput, votes]
+            discriminatorsoutput[keyClass] = [self.discriminators[keyClass].classify(entry),0]
 
-        if self.bleachingActivated and fixed_bleaching is None:
-            biggestVote, ambiguity = self._getBiggestVote(discriminatorsoutput)
-            while ambiguity and biggestVote > 1:
-                bleaching += 1
-                classes = []
-                for key in discriminatorsoutput:
-                    discriminator = discriminatorsoutput[key]
-                    discriminator[1] = 0
-                    for i in discriminator[0]:
-                        if i >= bleaching:
-                            discriminator[1] += 1
-                    classes.append((key, float(discriminator[1])/len(discriminator[0])))
-                biggestVote, ambiguity = self._getBiggestVote(discriminatorsoutput)
+        discriminatorsoutput = self._makeBleaching(discriminatorsoutput)
+
+        calc = lambda key: (key, float(discriminatorsoutput[key][1])/len(discriminatorsoutput[key][0]))
+        classes = list(map(calc,discriminatorsoutput))
         classes.sort(key=lambda x: x[1], reverse=True)
+
         return classes
 
-    def classify(self, entries, fixed_bleaching=None):
+
+    def classify(self, entries):
         output=[]
         for i,entry in enumerate(entries):
             if self.verbose:
                 print("\rclassifying "+str(i+1)+" of "+str(len(entries)), end='')
-            aclass = self.classifyEntry(entry,fixed_bleaching=fixed_bleaching)[0][0]
+
+            aclass = self.classifyEntry(entry)[0][0]
             output.append((entry, aclass))
+
         if self.verbose:
             print("\r")
         return output
