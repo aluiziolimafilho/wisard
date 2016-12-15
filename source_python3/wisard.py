@@ -3,12 +3,13 @@ import random
 from discriminator import Discriminator
 
 class Addressing:
-    def __call__(self, binCode):
+    def __call__(self, binCode): # binCode is a list of values of selected points of entry
         index = 0
         for i,e in enumerate(binCode):
             if e > 0:
                 index += pow(2,i)
         return index
+
 
 class WiSARD:
 
