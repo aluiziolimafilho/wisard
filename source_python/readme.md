@@ -23,3 +23,6 @@
     wsd.train(X, y)
 
     out = wsd.classify(X)
+
+    for i in range(len(y)):
+        print("o: "+y[i]+" p: "+out[i][1])
