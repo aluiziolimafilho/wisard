@@ -1,6 +1,6 @@
 # To use just do:
 
-    from wisard import WiSARD
+    from wisard import Wisard
 
     X = [
         [1,1,1,0,0,0,0,0],
@@ -16,7 +16,7 @@
         "hot"
     ]
 
-    wsd = WiSARD(addressSize=3, bleachingActivated=True)
+    wsd = Wisard(addressSize=3, bleachingActivated=True)
 
     print("seed: "+str(wsd.seed))
 

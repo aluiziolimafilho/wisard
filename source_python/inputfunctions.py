@@ -1,30 +1,29 @@
 
+class RAMControls:
 
-class Addressing:
-    def __call__(self, binCode): # binCode is a list of values of selected points of entry
+    def __init__(self, decayActivated=False):
+        self.decayActivated = decayActivated
+
+    def addressing(self, binCode):
         index = 0
         for i,e in enumerate(binCode):
             if e > 0:
                 index += pow(2,i)
         return index
 
-class Decay:
-
-    def __call__(self, **kwargs):
-        index = kwargs['index']
-        ram = kwargs['ram']
-        if index in ram:
-            value = ram[index]
-            ram[index] = 0.5*value - 0.1
-
-class Increase:
-
-    def __call__(self, **kwargs):
+    def increase(self, **kwargs):
         index = kwargs['index']
         ram = kwargs['ram']
         if index not in ram:
             ram[index] = 0
         ram[index] += 1
+
+    def decay(self, **kwargs):
+        index = kwargs['index']
+        ram = kwargs['ram']
+        if index in ram:
+            value = ram[index]
+            ram[index] = 0.5*value - 0.1
 
 class MakeBleachingSum:
 

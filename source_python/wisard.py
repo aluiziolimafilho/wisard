@@ -1,22 +1,23 @@
 import random
 
 from discriminator import Discriminator
+from deepwisard import LayerWisard, ConnectLayersDefault
 from inputfunctions import *
 
-class WiSARD:
+class Wisard:
 
     def __init__(self,
             addressSize = 3,
             numberOfRAMS = None,
             bleachingActivated = True,
-            seed = random.randint(0, 1000000),
             sizeOfEntry = None,
             classes = [],
+            seed = random.randint(0, 1000000),
             verbose = None,
             makeBleaching = None,
-            increase = Increase(),
-            decay = None,
-            addressing = Addressing()):
+            ramcontrols = None,
+            deep = None,
+            connectLayers = ConnectLayersDefault()):
 
         self.seed = seed
         self.verbose = verbose
@@ -28,41 +29,76 @@ class WiSARD:
             self.addressSize = addressSize
         self.numberOfRAMS = numberOfRAMS
         self.discriminators = {}
-        self.bleachingActivated = bleachingActivated
-        self.addressing = addressing
-        self.increase = increase
-        self.decay = decay
+
+        if isinstance(ramcontrols, RAMControls):
+            self.ramcontrols = ramcontrols
+        else:
+            self.ramcontrols = RAMControls()
+
         if makeBleaching is None:
             self.makeBleaching = MakeBleachingDefault(bleachingActivated)
         else:
             self.makeBleaching = makeBleaching
 
+        if isinstance(deep, LayerWisard):
+            self.deep = deep
+        else:
+            self.deep = None
+
+        self.connectLayers = connectLayers
+
         if sizeOfEntry is not None:
             for aclass in classes:
-                self.discriminators[aclass] = Discriminator(
-                    aclass, sizeOfEntry, self.addressSize,
-                    self.addressing, self.increase, self.decay, self.numberOfRAMS)
+                self._createADiscriminator(aclass, sizeOfEntry)
+
+    def _createADiscriminator(self, aclass, sizeOfEntry):
+        self.discriminators[str(aclass)] = Discriminator(
+            str(aclass), sizeOfEntry, self.addressSize,
+            self.ramcontrols, self.numberOfRAMS)
+
+    def _trainOneEntry(self, entry, aclass):
+        self.discriminators[aclass].train(entry)
+        if self.ramcontrols.decayActivated:
+            for key in self.discriminators:
+                if key != aclass:
+                    self.discriminators[key].train(entry, negative=True)
+
+    def _trainDeep(self, entry, aclass):
+        if self.deep is not None and self.connectLayers is not None:
+            self.deep.train(entry, aclass)
+            featureVector = self.deep.classify(entry)
+            entry = self.connectLayers(featureVector)
+        return entry
 
     def train(self, entries, classes):
-        sizeOfEntry = len(entries[0])
         for i,entry in enumerate(entries):
             if self.verbose is not None:
-                self.verbose("training",i+1,len(entries), i==len(entries)-1)
-            aclass = str(classes[i])
-            if aclass not in self.discriminators:
-                self.discriminators[aclass] = Discriminator(
-                    aclass, sizeOfEntry, self.addressSize,
-                    self.addressing, self.increase, self.decay, self.numberOfRAMS)
-            self.discriminators[aclass].train(entry)
-            if self.decay is not None:
-                for key in self.discriminators:
-                    if key != aclass:
-                        self.discriminators[key].train(entry, negative=True)
+                self.verbose(fase="training", index=i+1, total=len(entries), end=i==len(entries)-1)
 
-    def classifyEntry(self, entry):
+            aclass = str(classes[i])
+            entry = self._trainDeep(entry, aclass)
+
+            if aclass not in self.discriminators:
+                self._createADiscriminator(aclass, len(entry))
+            self._trainOneEntry(entry, aclass)
+
+    def getDiscriminatorsOutput(self, entry):
         discriminatorsoutput = {}
         for keyClass in self.discriminators:
             discriminatorsoutput[keyClass] = [self.discriminators[keyClass].classify(entry),0]
+        return discriminatorsoutput
+
+
+    def _deepClassify(self, entry):
+        if self.deep is not None and self.connectLayers is not None:
+            featureVector = self.deep.classify(entry)
+            entry = self.connectLayers(featureVector)
+        return entry
+
+    def classifyEntry(self, entry):
+        entry = self._deepClassify(entry)
+        discriminatorsoutput = self.getDiscriminatorsOutput(entry)
+
         discriminatorsoutput = self.makeBleaching(discriminatorsoutput)
         calc = lambda key: (key, float(discriminatorsoutput[key][1])/len(discriminatorsoutput[key][0]))
         classes = list(map(calc,discriminatorsoutput))
@@ -74,7 +110,7 @@ class WiSARD:
         output=[]
         for i,entry in enumerate(entries):
             if self.verbose is not None:
-                self.verbose("classifing",i+1,len(entries), i==len(entries)-1)
+                self.verbose(fase="training", index=i+1, total=len(entries), end=i==len(entries)-1)
             aclass = self.classifyEntry(entry)[0][0]
             output.append((entry, aclass))
         return output

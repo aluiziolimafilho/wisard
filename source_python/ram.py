@@ -2,10 +2,8 @@ from random import randint
 
 class RAM:
 
-    def __init__(self, addressSize, entrySize, addressing, increase, decay):
-        self.addressing = addressing
-        self.increase = increase
-        self.decay = decay
+    def __init__(self, addressSize, entrySize, controls):
+        self.controls = controls
         self.ram = {}
         self.address = [ randint(0, entrySize-1) for x in range(addressSize) ]
 
@@ -13,7 +11,7 @@ class RAM:
         binCode = []
         for i in self.address:
             binCode.append(entry[i])
-        return self.addressing(binCode)
+        return self.controls.addressing(binCode)
 
     def _getValue(self, index):
         if index not in self.ram:
@@ -24,9 +22,9 @@ class RAM:
     def train(self, entry, negative=False):
         index = self._addressToIndex(entry)
         if not negative:
-            self.increase(entry=entry, ram=self.ram, address=self.address, index=index)
+            self.controls.increase(entry=entry, ram=self.ram, address=self.address, index=index)
         else:
-            self.decay(entry=entry, ram=self.ram, address=self.address, index=index)
+            self.controls.decay(entry=entry, ram=self.ram, address=self.address, index=index)
 
     def classify(self, entry):
         index = self._addressToIndex(entry)
