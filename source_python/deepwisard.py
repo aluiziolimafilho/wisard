@@ -3,14 +3,42 @@ import random
 from discriminator import DeepDiscriminator
 from inputfunctions import *
 
-class ConnectLayersDefault:
+class BaseLayer:
 
-    def __call__(self, featureVector):
-        average = sum(featureVector)/len(featureVector)
-        cut = lambda x: 1 if x > average else 0
-        return list(map(cut,featureVector))
+    def __init__(self, deep=None, connectLayers=None):
+        if isinstance(deep, BaseLayer):
+            self.deep = deep
+            self.connectLayers = connectLayers
+        else:
+            self.deep = None
+            self.connectLayers = None
 
-class LayerWisard:
+    def train(self, entry, aclass):
+        if self.deep is not None and self.connectLayers is not None:
+            self.deep.train(entry, aclass)
+            featureVector = self.deep.classify(entry, aclass)
+            entry = self.connectLayers(featureVector)
+        self._train(entry, aclass)
+
+    def classify(self, entry, aclass=None): # if aclass is not None then is the fase of trainning otherwise is the fase of classification
+        if aclass is None:
+            if self.deep is not None and self.connectLayers is not None:
+                featureVector = self.deep.classify(entry)
+                entry = self.connectLayers(featureVector)
+            return self._classify(entry)
+        else:
+            return self._classifyTrain(entry, aclass)
+
+    def _train(self, entry, aclass):
+        pass
+
+    def _classifyTrain(self, entry, aclass):
+        pass
+
+    def _classify(self, entry):
+        pass
+
+class LayerWisard(BaseLayer):
 
     def __init__(self,
             addressSize = 3,
@@ -23,6 +51,8 @@ class LayerWisard:
             ramcontrols = None,
             deep = None,
             connectLayers = ConnectLayersDefault()):
+
+        BaseLayer.__init__(self, deep=deep, connectLayers=connectLayers)
 
         self.seed = seed
         self.verbose = verbose
@@ -42,44 +72,29 @@ class LayerWisard:
         else:
             self.ramcontrols = RAMControls()
 
-        if isinstance(deep, LayerWisard):
-            self.deep = deep
-        else:
-            self.deep = None
-
-        self.connectLayers = connectLayers
-
         if sizeOfEntry is not None:
             for aclass in classes:
-                self._createADiscriminator(aclass, sizeOfEntry)
+                self._createDiscriminator(aclass, sizeOfEntry)
 
-    def _createADiscriminator(self, aclass, sizeOfEntry):
+    def _createDiscriminator(self, aclass, sizeOfEntry):
         self.discriminators[str(aclass)] = DeepDiscriminator(
             str(aclass), sizeOfEntry, self.addressSize,
             self.ramcontrols, self.numberOfDiscriminators, self.numberOfRAMS)
 
-    def _trainDeep(self, entry, aclass):
-        if self.deep is not None and self.connectLayers is not None:
-            self.deep.train(entry, aclass)
-            featureVector = self.deep.classify(entry)
-            entry = self.connectLayers(featureVector)
-        return entry
-
-    def train(self, entry, aclass):
-        entry = self._trainDeep(entry, aclass)
+    def _train(self, entry, aclass):
         if aclass not in self.discriminators:
-            self._createADiscriminator(aclass, len(entry))
+            self._createDiscriminator(aclass, len(entry))
         self.discriminators[aclass].train(entry)
         if self.ramcontrols.decayActivated:
             for key in self.discriminators:
                 if key != aclass:
                     self.discriminators[key].train(entry, negative=True)
 
-    def classify(self, entry):
-        if self.deep is not None and self.connectLayers is not None:
-            featureVector = self.deep.classify(entry)
-            entry = self.connectLayers(featureVector)
-        out = []
+    def _classifyTrain(self, entry, aclass):
+        return {aclass: self.discriminators[aclass].classify(entry)}
+
+    def _classify(self, entry, aclass=None):
+        out = {}
         for key in self.discriminators:
-            out += self.discriminators[key].classify(entry)
+            out[key] = self.discriminators[key].classify(entry)
         return out

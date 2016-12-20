@@ -17,9 +17,8 @@ class Discriminator:
 
 class DeepDiscriminator:
 
-    def __init__(self, name, entrySize, addressSize, ramcontrols, numberOfDiscriminators=10, numberOfRAMS=None, discriminatorBleaching=None):
+    def __init__(self, name, entrySize, addressSize, ramcontrols, numberOfDiscriminators=10, numberOfRAMS=None):
         self.name = name
-        self.discriminatorBleaching = discriminatorBleaching
         self.discriminators = []
         for x in xrange(0,numberOfDiscriminators):
             discriminator = Discriminator(name, entrySize, addressSize, ramcontrols, numberOfRAMS)
@@ -30,7 +29,4 @@ class DeepDiscriminator:
             discriminator.train(entry, negative)
 
     def classify(self, entry):
-        out = []
-        for d in self.discriminators:
-            out += d.classify(entry)
-        return out
+        return [ d.classify(entry) for d in self.discriminators ]

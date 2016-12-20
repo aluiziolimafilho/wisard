@@ -1,14 +1,18 @@
+from binarization import *
 
 class RAMControls:
 
-    def __init__(self, decayActivated=False):
+    def __init__(self, base=2, decayActivated=False):
         self.decayActivated = decayActivated
+        self.base=base
 
     def addressing(self, binCode):
         index = 0
         for i,e in enumerate(binCode):
-            if e > 0:
-                index += pow(2,i)
+            if e < self.base:
+                index += e*pow(self.base,i)
+            else:
+                index += (self.base-1)*pow(self.base,i)
         return index
 
     def increase(self, **kwargs):
@@ -59,3 +63,26 @@ class MakeBleachingDefault:
                 break
 
         return discriminatorsoutput
+
+
+class ConnectLayersDefault:
+
+    def __init__(self):
+        self.bin = BinarizationDefault()
+
+    def join(self, matrix):
+        out = []
+        for line in matrix:
+            for element in line:
+                out.append(element)
+        return out
+
+    def __call__(self, featureVector):
+        if len(featureVector) == 1:
+            output = self.join(featureVector.items()[0][1])
+            output = self.bin(output)
+        else:
+            output = {}
+            for aclass in featureVector:
+                output[aclass] = self.bin(self.join(featureVector[aclass]))
+        return output

@@ -20,9 +20,9 @@
 
     print("seed: "+str(wsd.seed))
 
-    wsd.train(X, y)
+    wsd.trainall(X, y)
 
-    out = wsd.classify(X)
+    out = wsd.classifyall(X)
 
     for i in range(len(y)):
-        print("o: "+y[i]+" p: "+out[i][1])
+        print("o: "+y[i]+" p: "+out[i])
