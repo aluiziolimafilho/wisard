@@ -62,11 +62,10 @@ class MakeBleachingDefault:
 
         return discriminatorsoutput
 
+class ConnectLayersBase:
 
-class ConnectLayersDefault:
-
-    def __init__(self):
-        self.bin = BinarizationDefault()
+    def __init__(self, bin=BinarizationDefault()):
+        self.bin = bin
 
     def join(self, matrix):
         out = []
@@ -75,12 +74,19 @@ class ConnectLayersDefault:
                 out.append(element)
         return out
 
-    def __call__(self, featureVector):
-        if len(featureVector) == 1:
-            output = self.join(featureVector.items()[0][1])
-            output = self.bin(output)
-        else:
-            output = {}
-            for aclass in featureVector:
-                output[aclass] = self.bin(self.join(featureVector[aclass]))
+    def training(self, featureVector):
+        return self.transform(featureVector)
+
+    def classifying(self, entry):
+        output = {}
+        for aclass in entry:
+            output[aclass] = self.transform(entry[aclass])
         return output
+
+    def transform(self, featureVector):
+        pass
+
+class ConnectLayersDefault(ConnectLayersBase):
+
+    def transform(self, featureVector):
+        return self.bin(self.join(featureVector))

@@ -8,23 +8,26 @@ class BaseLayer:
     def __init__(self, deep=None, connectLayers=None):
         if isinstance(deep, BaseLayer):
             self.deep = deep
-            self.connectLayers = connectLayers
         else:
             self.deep = None
+
+        if isinstance(connectLayers, ConnectLayersBase):
+            self.connectLayers = connectLayers
+        else:
             self.connectLayers = None
 
     def train(self, entry, aclass):
         if self.deep is not None and self.connectLayers is not None:
             self.deep.train(entry, aclass)
             featureVector = self.deep.classify(entry, aclass)
-            entry = self.connectLayers(featureVector)
+            entry = self.connectLayers.training(featureVector)
         self._train(entry, aclass)
 
     def classify(self, entry, aclass=None): # if aclass is not None then is the fase of trainning otherwise is the fase of classification
         if aclass is None:
             if self.deep is not None and self.connectLayers is not None:
-                featureVector = self.deep.classify(entry)
-                entry = self.connectLayers(featureVector)
+                featuresVectors = self.deep.classify(entry)
+                entry = self.connectLayers.classifying(featuresVectors)
             return self._classify(entry)
         else:
             return self._classifyTrain(entry, aclass)
@@ -91,10 +94,14 @@ class LayerWisard(BaseLayer):
                     self.discriminators[key].train(entry, negative=True)
 
     def _classifyTrain(self, entry, aclass):
-        return {aclass: self.discriminators[aclass].classify(entry)}
+        return self.discriminators[aclass].classify(entry)
 
-    def _classify(self, entry, aclass=None):
+    def _classify(self, entry):
         out = {}
         for key in self.discriminators:
-            out[key] = self.discriminators[key].classify(entry)
+            if isinstance(entry, dict):
+                out[key] = self.discriminators[key].classify(entry[key])
+            else:
+                out[key] = self.discriminators[key].classify(entry)
+
         return out

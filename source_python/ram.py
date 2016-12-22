@@ -36,7 +36,6 @@ class RAM:
     def __init__(self, addressSize, entrySize, controls):
         self.controls = controls
         self.ram = CompactedRAM()
-        self.s = entrySize
         self.address = AddressControl(addressSize, entrySize, controls.addressing)
 
     def train(self, entry, negative=False):
