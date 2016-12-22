@@ -18,8 +18,6 @@ class RAMControls:
     def increase(self, **kwargs):
         index = kwargs['index']
         ram = kwargs['ram']
-        if index not in ram:
-            ram[index] = 0
         ram[index] += 1
 
     def decay(self, **kwargs):
