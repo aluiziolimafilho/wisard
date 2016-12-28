@@ -1,7 +1,8 @@
 import random
+import json
 
 from discriminator import Discriminator
-from deepwisard import LayerWisard, ConnectLayersDefault, BaseLayer
+from deepwisard import ConnectLayersDefault, BaseLayer
 from inputfunctions import *
 
 class Wisard(BaseLayer):
@@ -25,13 +26,6 @@ class Wisard(BaseLayer):
         self.verbose = verbose
         random.seed(seed)
 
-        if addressSize < 3:
-            self.addressSize = 3
-        else:
-            self.addressSize = addressSize
-        self.numberOfRAMS = numberOfRAMS
-        self.discriminators = {}
-
         if isinstance(ramcontrols, RAMControls):
             self.ramcontrols = ramcontrols
         else:
@@ -41,6 +35,14 @@ class Wisard(BaseLayer):
             self.makeBleaching = MakeBleachingDefault(bleachingActivated)
         else:
             self.makeBleaching = makeBleaching
+
+        self.discriminators = {}
+
+        if addressSize < 3:
+            self.addressSize = 3
+        else:
+            self.addressSize = addressSize
+        self.numberOfRAMS = numberOfRAMS
 
         if sizeOfEntry is not None:
             for aclass in classes:

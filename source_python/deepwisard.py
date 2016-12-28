@@ -1,6 +1,6 @@
 import random
 
-from discriminator import DeepDiscriminator
+from discriminator import DeepDiscriminator, Discriminator
 from inputfunctions import *
 
 class BaseLayer:
@@ -41,7 +41,7 @@ class BaseLayer:
     def _classify(self, entry):
         pass
 
-class LayerWisard(BaseLayer):
+class LayerClassWisard(BaseLayer):
 
     def __init__(self,
             addressSize = 3,
@@ -50,7 +50,6 @@ class LayerWisard(BaseLayer):
             classes = [],
             numberOfDiscriminators = 10, # number of discriminators for each class
             seed = random.randint(0, 1000000),
-            verbose = None,
             ramcontrols = None,
             deep = None,
             connectLayers = ConnectLayersDefault()):
@@ -58,7 +57,6 @@ class LayerWisard(BaseLayer):
         BaseLayer.__init__(self, deep=deep, connectLayers=connectLayers)
 
         self.seed = seed
-        self.verbose = verbose
         random.seed(seed)
 
         if addressSize < 3:
@@ -105,3 +103,62 @@ class LayerWisard(BaseLayer):
                 out[key] = self.discriminators[key].classify(entry)
 
         return out
+
+
+class LayerFilterWisard(BaseLayer):
+
+    def __init__(self,
+        addressSize = 3,
+        numberOfRAMS = None,
+        sizeOfEntry = None,
+        numberOfDiscriminators = 10, # number of discriminators for each class
+        seed = random.randint(0, 1000000),
+        ramcontrols = None,
+        deep = None,
+        connectLayers = ConnectLayersFilter()):
+
+        BaseLayer.__init__(self, deep=deep, connectLayers=connectLayers)
+
+        self.seed = seed
+        random.seed(seed)
+
+        if addressSize < 3:
+            self.addressSize = 3
+        else:
+            self.addressSize = addressSize
+
+        self.numberOfRAMS = numberOfRAMS
+        self.discriminators = []
+        self.numberOfDiscriminators = numberOfDiscriminators
+
+        if isinstance(ramcontrols, RAMControls):
+            self.ramcontrols = ramcontrols
+        else:
+            self.ramcontrols = RAMControls()
+
+        if sizeOfEntry is not None:
+            self._createDiscriminator(sizeOfEntry)
+
+    def _createDiscriminator(self, sizeOfEntry):
+        for x in xrange(0,self.numberOfDiscriminators):
+            discriminator = Discriminator(None, sizeOfEntry, self.addressSize, self.ramcontrols, self.numberOfRAMS)
+            self.discriminators.append(discriminator)
+
+
+    def _train(self, entry, aclass):
+        if len(self.discriminators) == 0:
+            self._createDiscriminator(len(entry))
+        for discriminator in self.discriminators:
+            discriminator.train(entry, aclass)
+
+    def _classy(self, entry):
+        out = []
+        for discriminator in self.discriminators:
+            out.append( discriminator.classify(entry) )
+        return out
+
+    def _classifyTrain(self, entry, aclass):
+        return self._classy(entry)
+
+    def _classify(self, entry):
+        return self._classy(entry)

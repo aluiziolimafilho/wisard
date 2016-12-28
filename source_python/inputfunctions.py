@@ -25,7 +25,7 @@ class RAMControls:
         ram = kwargs['ram']
         if index in ram:
             value = ram[index]
-            ram[index] = 0.5*value - 0.1
+            ram[index] = 0.5*value
 
 class MakeBleachingSum:
 
@@ -50,7 +50,7 @@ class MakeBleachingDefault:
             ambiguity = False
             for key in discriminatorsoutput:
                 discriminator = discriminatorsoutput[key]
-                limit = lambda x: 1 if x >= bleaching else 0
+                limit = lambda x: 1 if x > bleaching else 0
                 discriminator[1] = sum(map(limit, discriminator[0]))
                 if biggestVote is None or discriminator[1] > biggestVote:
                     biggestVote = discriminator[1]
@@ -87,6 +87,15 @@ class ConnectLayersBase:
         pass
 
 class ConnectLayersDefault(ConnectLayersBase):
+
+    def transform(self, featureVector):
+        return self.bin(self.join(featureVector))
+
+
+class ConnectLayersFilter(ConnectLayersBase):
+
+    def classifying(self, featureVector):
+        return self.transform(featureVector)
 
     def transform(self, featureVector):
         return self.bin(self.join(featureVector))
