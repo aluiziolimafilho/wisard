@@ -2,9 +2,11 @@ from binarization import *
 
 class RAMControls:
 
-    def __init__(self, base=2, decayActivated=False):
+    def __init__(self, base=2, decayActivated=False, alfa=lambda x: x + 1.0, beta=lambda x: x*0.1):
         self.decayActivated = decayActivated
         self.base=base
+        self.alfa = alfa
+        self.beta = beta
 
     def addressing(self, binCode):
         index = 0
@@ -18,21 +20,25 @@ class RAMControls:
     def increase(self, **kwargs):
         index = kwargs['index']
         ram = kwargs['ram']
-        ram[index] += 1
+        value = ram[index]
+        ram[index] = self.alfa(value)
 
     def decay(self, **kwargs):
         index = kwargs['index']
         ram = kwargs['ram']
         if index in ram:
             value = ram[index]
-            ram[index] = 0.5*value
+            ram[index] = self.beta(value)
 
 class MakeBleachingSum:
+
+    def __init__(self, cut=lambda x: x):
+        self.cut = cut
 
     def __call__(self, discriminatorsoutput):
         for key in discriminatorsoutput:
             ramsoutput = discriminatorsoutput[key][0]
-            discriminatorsoutput[key][1] = sum(ramsoutput)
+            discriminatorsoutput[key][1] = sum(map(self.cut,ramsoutput))
         return discriminatorsoutput
 
 class MakeBleachingDefault:

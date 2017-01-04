@@ -1,5 +1,4 @@
 import random
-import json
 
 from discriminator import Discriminator
 from deepwisard import ConnectLayersDefault, BaseLayer
@@ -91,7 +90,7 @@ class Wisard(BaseLayer):
         output=[]
         for i,entry in enumerate(entries):
             if self.verbose is not None:
-                self.verbose(fase="training", index=i+1, total=len(entries), end=i==len(entries)-1)
+                self.verbose(fase="classifing", index=i+1, total=len(entries), end=i==len(entries)-1)
             aclass = self.classify(entry)
             output.append(aclass)
         return output
