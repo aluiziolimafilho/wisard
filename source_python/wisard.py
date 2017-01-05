@@ -37,10 +37,7 @@ class Wisard(BaseLayer):
 
         self.discriminators = {}
 
-        if addressSize < 3:
-            self.addressSize = 3
-        else:
-            self.addressSize = addressSize
+        self.addressSize = addressSize
         self.numberOfRAMS = numberOfRAMS
 
         if sizeOfEntry is not None:

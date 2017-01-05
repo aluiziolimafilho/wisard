@@ -59,11 +59,7 @@ class LayerClassWisard(BaseLayer):
         self.seed = seed
         random.seed(seed)
 
-        if addressSize < 3:
-            self.addressSize = 3
-        else:
-            self.addressSize = addressSize
-
+        self.addressSize = addressSize
         self.numberOfRAMS = numberOfRAMS
         self.discriminators = {}
         self.numberOfDiscriminators = numberOfDiscriminators

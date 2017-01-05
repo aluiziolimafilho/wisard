@@ -26,9 +26,9 @@ class RAMControls:
     def decay(self, **kwargs):
         index = kwargs['index']
         ram = kwargs['ram']
-        if index in ram:
-            value = ram[index]
-            ram[index] = self.beta(value)
+        value = ram[index]
+        ram[index] = self.beta(value)
+
 
 class MakeBleachingSum:
 

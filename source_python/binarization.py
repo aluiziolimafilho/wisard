@@ -1,3 +1,4 @@
+import math
 
 class BinarizationDefault:
 
@@ -34,6 +35,33 @@ class Quarterization:
         for x in entry:
             dp += (x - average)**2
         dp = (dp/len(entry))**0.5
+
+        for i in xrange(len(entry)):
+            entry[i] = self.code(entry[i], average, dp)
+        return entry
+
+class Customrization:
+
+    def __init__(self, base=2):
+        self.base=base-1
+
+    def code(self, x, mean, dp):
+        if dp == 0:
+            dp = 1
+        out = (((x - mean)/dp) + 1.0)/2.0
+        if out > 1 or out < -1:
+            return self.base
+        elif out < 0:
+            return round(-self.base*out)
+        else:
+            return round(self.base*out)
+
+    def __call__(self, entry):
+        average = float(sum(entry))/len(entry)
+        dp = 0
+        for x in entry:
+            dp += math.pow(x - average, 2)
+        dp = math.sqrt(dp/len(entry))
 
         for i in xrange(len(entry)):
             entry[i] = self.code(entry[i], average, dp)

@@ -15,7 +15,8 @@ class CompactedRAM:
 
     def __setitem__(self, index, item):
         if item == 0:
-            del self.ram[index]
+            if index in self.ram:
+                del self.ram[index]
         else:
             self.ram[index] = item
 
