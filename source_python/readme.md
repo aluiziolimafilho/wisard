@@ -37,7 +37,7 @@
 
 # Parameters specification:
 
-    below we show the default values of each parameter:
+below we show the default values of each parameter:
 
     wsd = Wisard(
               addressSize = 3,
@@ -48,34 +48,34 @@
               ramcontrols = None
               )
 
-    addressSize -- int -- the size of addressing to the ram
-    bleachingActivated -- boolean -- use bleaching or not in the classification
-    seed -- int -- the seed used to generate the mapping of indexes to the rams
-    verbose -- function -- you can make your own verbose function of the training and classification processes
-    makeBleaching -- function -- you can customize your own classification algorithm
-    ramcontrols -- function -- ignore that for while, because it is in development
+addressSize -- int -- the size of addressing to the ram
+bleachingActivated -- boolean -- use bleaching or not in the classification
+seed -- int -- the seed used to generate the mapping of indexes to the rams
+verbose -- function -- you can make your own verbose function of the training and classification processes
+makeBleaching -- function -- you can customize your own classification algorithm
+ramcontrols -- function -- ignore that for while, because it is in development
 
 # Format of verbose function:
 
-  def verbose(fase=None, index=None, total=None, end=None):
-    # do the print on your format.
-    print("fase: "+fase+" step:"+index)
+    def verbose(fase=None, index=None, total=None, end=None):
+      # do the print on your format.
+      print("fase: "+fase+" step:"+index)
 
-  fase -- string -- show 'training' in the training process and show 'classifying' in the classifying process
-  index -- int -- show the step of the process
-  total -- int -- show the total steps of the process
-  end -- boolean -- become true in the end of the process
+fase -- string -- show 'training' in the training process and show 'classifying' in the classifying process
+index -- int -- show the step of the process
+total -- int -- show the total steps of the process
+end -- boolean -- become true in the end of the process
 
 # Format of bleaching function:
 
-class YourBleancingFunction:
+      class YourBleancingFunction:
 
-    def __init__(self, *args, **kwargs):
-        pass
+          def __init__(self, *args, **kwargs):
+              pass
 
-    def __call__(self, discriminatorsoutput):
-      # do some algorithm of classification
-      return discriminatorsoutput
+          def __call__(self, discriminatorsoutput):
+            # do some algorithm of classification
+            return discriminatorsoutput
 
 discriminatorsoutput -- dict -- it is a dictionary that the key is the class of the classification problem and the value is the discriminator output.
 discriminatoroutput -- list(2) -- the first value is the list of the outputs of rams,
@@ -89,6 +89,7 @@ to use just pass the class as parameter to the Wisard.
 
 there is some functions in the file binarization.py, to you use to binarize the entry.
 exemple of use:
+
       bin = BinarizationDefault(cut=1)
 
       X = [
