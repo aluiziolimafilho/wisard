@@ -1,12 +1,21 @@
+import random
 from ram import RAM
 
 class Discriminator:
 
-    def __init__(self, name, entrySize, addressSize, ramcontrols, numberOfRAMS=None):
+    def __init__(self, name, entrySize, addressSize, ramcontrols):
         self.name = name
-        if numberOfRAMS is None:
-            numberOfRAMS = int(entrySize/addressSize)
-        self.rams = [ RAM(addressSize, entrySize, ramcontrols) for x in range(numberOfRAMS) ]
+        self.entrySize = entrySize
+        numberOfRAMS = int(entrySize/addressSize)
+        indexes = [i for i in range(entrySize)]
+        random.shuffle(indexes)
+        self.rams = [ RAM(indexes[x*addressSize:(1+x)*addressSize], ramcontrols) for x in range(numberOfRAMS) ]
+        remain = entrySize%addressSize
+        if remain > 0:
+            newindexes = indexes[:-remain] + [ random.randint(0,entrySize-1) for x in range(addressSize-remain)]
+            self.rams.append(RAM(newindexes, ramcontrols))
+
+
 
     def train(self, entry, negative=False):
         for ram in self.rams:
@@ -15,18 +24,9 @@ class Discriminator:
     def classify(self, entry):
         return [ ram.classify(entry) for ram in self.rams ]
 
-class DeepDiscriminator:
-
-    def __init__(self, name, entrySize, addressSize, ramcontrols, numberOfDiscriminators=10, numberOfRAMS=None):
-        self.name = name
-        self.discriminators = []
-        for x in xrange(0,numberOfDiscriminators):
-            discriminator = Discriminator(name, entrySize, addressSize, ramcontrols, numberOfRAMS)
-            self.discriminators.append(discriminator)
-
-    def train(self, entry, negative=False):
-        for discriminator in self.discriminators:
-            discriminator.train(entry, negative)
-
-    def classify(self, entry):
-        return [ d.classify(entry) for d in self.discriminators ]
+    def getMentalImage(self):
+        mentalImage = [0 for x in range(self.entrySize)]
+        for ram in self.rams:
+            for mentalPixel in ram.getMentalImage():
+                mentalImage[mentalPixel[0]]=mentalPixel[1]
+        return mentalImage

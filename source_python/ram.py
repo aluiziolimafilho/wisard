@@ -20,24 +20,30 @@ class CompactedRAM:
         else:
             self.ram[index] = item
 
+    def __len__(self):
+        return len(self.ram)
+
 class AddressControl:
 
-    def __init__(self, addressSize, entrySize, addressing):
+    def __init__(self, indexes, addressing):
         self.addressing = addressing
-        self.address = [ randint(0, entrySize-1) for x in range(addressSize) ]
+        self.indexes = indexes
 
     def __getitem__(self, entry):
         binCode = []
-        for i in self.address:
+        for i in self.indexes:
             binCode.append(entry[i])
         return self.addressing(binCode)
 
+    def __len__(self):
+        return len(self.indexes)
+
 class RAM:
 
-    def __init__(self, addressSize, entrySize, controls):
+    def __init__(self, indexes, controls):
         self.controls = controls
         self.ram = CompactedRAM()
-        self.address = AddressControl(addressSize, entrySize, controls.addressing)
+        self.address = AddressControl(indexes, controls.addressing)
 
     def train(self, entry, negative=False):
         index = self.address[entry]
@@ -49,3 +55,13 @@ class RAM:
     def classify(self, entry):
         index = self.address[entry]
         return self.ram[index]
+
+    def getMentalImage(self):
+        mental = [ [x,0] for x in self.address.indexes]
+        for address in self.ram.ram:
+            if address == 0:
+                continue
+            for i in range(len(self.address)):
+                if (address & 2**i) > 0:
+                    mental[i][1] += self.ram[address]
+        return mental

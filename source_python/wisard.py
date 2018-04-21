@@ -1,25 +1,20 @@
 import random
 
 from discriminator import Discriminator
-from deepwisard import ConnectLayersDefault, BaseLayer
+from deepwisard import BaseLayer
 from inputfunctions import *
 
 class Wisard(BaseLayer):
 
     def __init__(self,
             addressSize = 3,
-            numberOfRAMS = None,
             bleachingActivated = True,
-            sizeOfEntry = None,
-            classes = [],
             seed = random.randint(0, 1000000),
             verbose = None,
             makeBleaching = None,
-            ramcontrols = None,
-            deep = None,
-            connectLayers = ConnectLayersDefault()):
+            ramcontrols = None):
 
-        BaseLayer.__init__(self, deep=deep, connectLayers=connectLayers)
+        BaseLayer.__init__(self)
 
         self.seed = seed
         self.verbose = verbose
@@ -38,16 +33,12 @@ class Wisard(BaseLayer):
         self.discriminators = {}
 
         self.addressSize = addressSize
-        self.numberOfRAMS = numberOfRAMS
 
-        if sizeOfEntry is not None:
-            for aclass in classes:
-                self._createDiscriminator(aclass, sizeOfEntry)
 
     def _createDiscriminator(self, aclass, sizeOfEntry):
         self.discriminators[str(aclass)] = Discriminator(
             str(aclass), sizeOfEntry, self.addressSize,
-            self.ramcontrols, self.numberOfRAMS)
+            self.ramcontrols)
 
     def _train(self, entry, aclass):
         if aclass not in self.discriminators:
@@ -87,7 +78,13 @@ class Wisard(BaseLayer):
         output=[]
         for i,entry in enumerate(entries):
             if self.verbose is not None:
-                self.verbose(fase="classifing", index=i+1, total=len(entries), end=i==len(entries)-1)
+                self.verbose(fase="classifying", index=i+1, total=len(entries), end=i==len(entries)-1)
             aclass = self.classify(entry)
             output.append(aclass)
         return output
+
+    def getMentalImages(self):
+        mentalImages = {}
+        for aClass in self.discriminators:
+            mentalImages[aClass] = self.discriminators[aClass].getMentalImage()
+        return mentalImages
