@@ -48,12 +48,12 @@ below we show the default values of each parameter:
               ramcontrols = None
               )
 
-addressSize -- int -- the size of addressing to the ram
-bleachingActivated -- boolean -- use bleaching or not in the classification
-seed -- int -- the seed used to generate the mapping of indexes to the rams
-verbose -- function -- you can make your own verbose function of the training and classification processes
-makeBleaching -- function -- you can customize your own classification algorithm
-ramcontrols -- function -- ignore that for while, because it is in development
+    addressSize -- int -- the size of addressing to the ram
+    bleachingActivated -- boolean -- use bleaching or not in the classification
+    seed -- int -- the seed used to generate the mapping of indexes to the rams
+    verbose -- function -- you can make your own verbose function of the training and classification processes
+    makeBleaching -- function -- you can customize your own classification algorithm
+    ramcontrols -- function -- ignore that for while, because it is in development
 
 # Format of verbose function:
 
@@ -61,10 +61,10 @@ ramcontrols -- function -- ignore that for while, because it is in development
       # do the print on your format.
       print("fase: "+fase+" step:"+index)
 
-fase -- string -- show 'training' in the training process and show 'classifying' in the classifying process
-index -- int -- show the step of the process
-total -- int -- show the total steps of the process
-end -- boolean -- become true in the end of the process
+    fase -- string -- show 'training' in the training process and show 'classifying' in the classifying process
+    index -- int -- show the step of the process
+    total -- int -- show the total steps of the process
+    end -- boolean -- become true in the end of the process
 
 # Format of bleaching function:
 
@@ -77,11 +77,13 @@ end -- boolean -- become true in the end of the process
             # do some algorithm of classification
             return discriminatorsoutput
 
-discriminatorsoutput -- dict -- it is a dictionary that the key is the class of the classification problem and the value is the discriminator output.
-discriminatoroutput -- list(2) -- the first value is the list of the outputs of rams,
+        discriminatorsoutput -- dict -- it is a dictionary that the key is the class of the classification problem and the value is the discriminator output.
+
+        discriminatoroutput -- list(2) -- the first value is the list of the outputs of rams,
                   the second value is the importance of the discriminator between all others,
                   this value will be used to choose the class of the entry.
-return -- dict -- the same format of discriminatorsoutput
+                  
+        return -- dict -- the same format of discriminatorsoutput
 
 to use just pass the class as parameter to the Wisard.
 
