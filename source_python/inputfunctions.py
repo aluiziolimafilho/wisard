@@ -67,3 +67,31 @@ class MakeBleachingDefault:
                 break
 
         return discriminatorsoutput
+
+class MakeBleachingClus:
+
+    def __init__(self, bleachingActivated=True):
+        self.bleachingActivated = bleachingActivated
+
+    def __call__(self, discriminatorsoutput):
+        bleaching = 0
+        ambiguity = True
+        biggestVote = 2
+        while ambiguity and biggestVote > 1:
+            bleaching += 1
+            biggestVote = None
+            ambiguity = False
+            for key in discriminatorsoutput:
+                cluster = discriminatorsoutput[key]
+                for discriminator in cluster:
+                    limit = lambda x: 1 if x > bleaching else 0
+                    discriminator[1] = sum(map(limit, discriminator[0]))
+                    if biggestVote is None or discriminator[1] > biggestVote:
+                        biggestVote = discriminator[1]
+                        ambiguity = False
+                    elif discriminator[1] == biggestVote:
+                        ambiguity = True
+            if self.bleachingActivated:
+                break
+
+        return discriminatorsoutput

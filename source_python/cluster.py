@@ -15,7 +15,7 @@ class Cluster():
 
     def score(self, discriminatoroutput):
         m = max(discriminatoroutput)
-        return avg(discriminatoroutput)/float(m)
+        return sum(discriminatoroutput)/(len(discriminatoroutput)*float(m))
 
     def train(self, entry):
         newDiscriminator = True
@@ -30,7 +30,14 @@ class Cluster():
             self.discriminators.append(d)
             d.train(entry)
 
-
-
     def classify(self, entry):
-        pass
+        output = []
+        for d in self.discriminators:
+            output.append(d.classify(entry))
+        return output
+
+    def getMentalImages(self):
+        images = []
+        for d in self.discriminators:
+            images.append(d.getMentalImage())
+        return images
