@@ -16,10 +16,17 @@ class ClusWisard():
         self.clusters = {}
 
     def _createCluster(self, entrySize):
-        return Cluster(id=len(self.clusters)+1 ,addressSize=self.addressSize, entrySize=entrySize, ramcontrols=RAMControls())
+        return Cluster(
+            minScore=self.minScore,
+            threshold=self.threshold,
+            addressSize=self.addressSize,
+            entrySize=entrySize,
+            ramcontrols=RAMControls())
 
-    def train(self, entry):
-        pass
+    def train(self, entry, aClass):
+        if aClass not in self.clusters:
+            self.clusters[aClass] = self._createCluster(len(entrySize))
+        self.clusters[aClass].train(entry)
 
     def trainall(self, entries):
         for i,entry in enumerate(entries):
