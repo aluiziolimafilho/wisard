@@ -7,8 +7,8 @@ class ClusWisard():
 
     def __init__(self, **kwargs):
         self.addressSize = kwargs.get('addressSize')
-        self.minScore = kwargs.get('minScore',2)
-        self.threshold = kwargs.get('threshold', 5)
+        self.minScore = kwargs.get('minScore',0.5)
+        self.threshold = kwargs.get('threshold', 10)
         self.makeBleaching = kwargs.get('makeBleaching', MakeBleachingClus(True))
         self.seed = kwargs.get('seed', random.randint(0, 1000000))
         random.seed(self.seed)
