@@ -1,8 +1,5 @@
 import random
 
-from discriminator import Discriminator
-from inputfunctions import *
-
 class BaseLayer:
 
     def __init__(self):

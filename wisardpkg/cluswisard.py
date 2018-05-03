@@ -1,7 +1,7 @@
 import random
 
-from cluster import Cluster
-from inputfunctions import *
+from .cluster import Cluster
+from .inputfunctions import *
 
 class ClusWisard():
 

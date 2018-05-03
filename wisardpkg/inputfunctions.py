@@ -1,4 +1,4 @@
-from binarization import *
+from .binarization import *
 
 class RAMControls:
 

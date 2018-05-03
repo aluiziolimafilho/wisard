@@ -1,5 +1,5 @@
-from wisard import Wisard
-from cluswisard import ClusWisard
+from .wisard import Wisard
+from .cluswisard import ClusWisard
 
 # Entry example
 

@@ -1,5 +1,5 @@
 import random
-from ram import RAM
+from .ram import RAM
 
 class Discriminator:
 

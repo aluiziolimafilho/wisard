@@ -1,4 +1,4 @@
-from discriminator import Discriminator
+from .discriminator import Discriminator
 
 class Cluster():
 

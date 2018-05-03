@@ -1,8 +1,8 @@
 import random
 
-from discriminator import Discriminator
-from deepwisard import BaseLayer
-from inputfunctions import *
+from .discriminator import Discriminator
+from .deepwisard import BaseLayer
+from .inputfunctions import *
 
 class Wisard(BaseLayer):
 
